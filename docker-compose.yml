@@ -9,10 +9,10 @@ services:
     restart: unless-stopped
     networks:
       - mcp-network
-      - transactions_transactions-network
+      - financer-transactions_transactions-network
 
 networks:
   mcp-network:
     driver: bridge
-  transactions_transactions-network:
+  financer-transactions_transactions-network:
     external: true
