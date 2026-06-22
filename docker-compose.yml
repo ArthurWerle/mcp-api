@@ -1,0 +1,18 @@
+services:
+  mcp-api:
+    build: .
+    container_name: ${SERVICE_CONTAINER_NAME}
+    env_file:
+      - stack.env
+    ports:
+      - "${SERVICE_PORT}:${SERVER_PORT}"
+    restart: unless-stopped
+    networks:
+      - mcp-network
+      - transactions_transactions-network
+
+networks:
+  mcp-network:
+    driver: bridge
+  transactions_transactions-network:
+    external: true
