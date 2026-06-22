@@ -25,6 +25,7 @@ func main() {
 	baseURL := getEnv("TRANSACTION_SERVICE_URL", "http://localhost:1235/api/v2")
 	transport := getEnv("TRANSPORT", "http")
 	port := getEnv("SERVER_PORT", "3001")
+	publicURL := getEnv("PUBLIC_URL", fmt.Sprintf("http://0.0.0.0:%s", port))
 
 	client := NewTransactionClient(baseURL, logger)
 
@@ -46,7 +47,7 @@ func main() {
 	case "http":
 		addr := fmt.Sprintf(":%s", port)
 		logger.Info("starting MCP server in HTTP/SSE mode", "addr", addr)
-		sseServer := server.NewSSEServer(s, server.WithBaseURL(fmt.Sprintf("http://0.0.0.0:%s", port)))
+		sseServer := server.NewSSEServer(s, server.WithBaseURL(publicURL))
 		if err := sseServer.Start(addr); err != nil {
 			logger.Error("SSE server error", "err", err)
 			os.Exit(1)
