@@ -1,7 +1,7 @@
 services:
   mcp-api:
     build: .
-    container_name: ${SERVICE_CONTAINER_NAME}
+    container_name: mcp-api
     env_file:
       - stack.env
     ports:
