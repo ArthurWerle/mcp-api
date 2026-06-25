@@ -17,9 +17,8 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-func startHealthServer(port string, client *TransactionClient, logger *slog.Logger) {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+func healthHandler(client *TransactionClient, logger *slog.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		type response struct {
 			Status     string `json:"status"`
 			Service    string `json:"service"`
@@ -48,12 +47,6 @@ func startHealthServer(port string, client *TransactionClient, logger *slog.Logg
 			Backend:    backendStatus,
 			BackendURL: client.baseURL,
 		})
-	})
-
-	addr := ":" + port
-	logger.Info("starting health server", "addr", addr)
-	if err := http.ListenAndServe(addr, mux); err != nil {
-		logger.Error("health server error", "err", err)
 	}
 }
 
@@ -66,8 +59,7 @@ func main() {
 
 	baseURL := getEnv("TRANSACTION_SERVICE_URL", "http://localhost:1235/api/v2")
 	transport := getEnv("TRANSPORT", "http")
-	port := getEnv("SERVER_PORT", "3001")
-	healthPort := getEnv("HEALTH_PORT", "3002")
+	port := getEnv("SERVER_PORT", "3006")
 
 	logger.Info("starting mcp-api",
 		"transport", transport,
@@ -92,13 +84,16 @@ func main() {
 			os.Exit(1)
 		}
 	case "http":
-		go startHealthServer(healthPort, client, logger)
-
 		addr := fmt.Sprintf(":%s", port)
-		logger.Info("starting MCP server in HTTP/SSE mode", "addr", addr)
 		sseServer := server.NewSSEServer(s, server.WithBaseURL(fmt.Sprintf("http://0.0.0.0:%s", port)))
-		if err := sseServer.Start(addr); err != nil {
-			logger.Error("SSE server error", "err", err)
+
+		mux := http.NewServeMux()
+		mux.HandleFunc("/health", healthHandler(client, logger))
+		mux.Handle("/", sseServer)
+
+		logger.Info("starting MCP server in HTTP/SSE mode", "addr", addr)
+		if err := http.ListenAndServe(addr, mux); err != nil {
+			logger.Error("server error", "err", err)
 			os.Exit(1)
 		}
 	default:
