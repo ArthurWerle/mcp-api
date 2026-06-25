@@ -17,6 +17,11 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Upgrade mcp-go to latest
+        run: |
+          go get github.com/mark3labs/mcp-go@latest
+          go mod tidy
+
       - name: Build macOS Apple Silicon
         run: GOOS=darwin GOARCH=arm64 go build -o mcp-transactions-darwin-arm64 .
 
