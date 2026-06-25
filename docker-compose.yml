@@ -2,12 +2,10 @@ services:
   mcp-api:
     build: .
     container_name: mcp-api
-    environment:
-      - PUBLIC_URL=${PUBLIC_URL:-http://0.0.0.0:3001}
     env_file:
       - stack.env
     ports:
-      - "6666:3001"
+      - "6666:3006"
     restart: unless-stopped
     networks:
       - mcp-network
