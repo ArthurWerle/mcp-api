@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -96,5 +97,41 @@ func (c *TransactionClient) ListSubcategories(ctx context.Context) ([]byte, erro
 }
 
 func (c *TransactionClient) HealthCheck(ctx context.Context) ([]byte, error) {
-	return c.get(ctx, "/health", nil)
+	// /health lives at the root, not under /api/v2
+	u := strings.TrimSuffix(c.baseURL, "/api/v2") + "/health"
+	return c.getURL(ctx, u)
+}
+
+func (c *TransactionClient) getURL(ctx context.Context, u string) ([]byte, error) {
+	start := time.Now()
+	c.logger.Info("upstream request", "method", "GET", "url", u)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		c.logger.Error("failed to build request", "url", u, "err", err)
+		return nil, err
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		c.logger.Error("upstream unreachable", "url", u, "duration_ms", time.Since(start).Milliseconds(), "err", err)
+		return nil, fmt.Errorf("could not reach upstream %s: %w", u, err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.logger.Error("failed to read response body", "url", u, "err", err)
+		return nil, err
+	}
+
+	duration := time.Since(start).Milliseconds()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		c.logger.Error("upstream error response", "url", u, "status", resp.StatusCode, "duration_ms", duration, "body", string(body))
+		return nil, fmt.Errorf("upstream returned %d: %s", resp.StatusCode, string(body))
+	}
+
+	c.logger.Info("upstream response ok", "url", u, "status", resp.StatusCode, "duration_ms", duration)
+	return body, nil
 }
