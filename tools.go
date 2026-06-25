@@ -24,9 +24,10 @@ func RegisterTools(s *server.MCPServer, client *TransactionClient, logger *slog.
 
 func toolResult(body []byte, err error, logger *slog.Logger, toolName string) (*mcp.CallToolResult, error) {
 	if err != nil {
-		logger.Error(toolName+" failed", "err", err)
+		logger.Error("tool call failed", "tool", toolName, "err", err)
 		return mcp.NewToolResultError(err.Error()), nil
 	}
+	logger.Info("tool call succeeded", "tool", toolName)
 	return mcp.NewToolResultText(string(body)), nil
 }
 
@@ -58,6 +59,7 @@ func registerListTransactions(s *server.MCPServer, client *TransactionClient, lo
 		if v := req.GetInt("offset", 0); v > 0 {
 			q.Set("offset", fmt.Sprintf("%d", v))
 		}
+		logger.Info("tool call", "tool", "list_transactions", "params", q.Encode())
 		body, err := client.ListTransactions(ctx, q)
 		return toolResult(body, err, logger, "list_transactions")
 	})
@@ -73,6 +75,7 @@ func registerGetTransaction(s *server.MCPServer, client *TransactionClient, logg
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
+		logger.Info("tool call", "tool", "get_transaction", "id", id)
 		body, err := client.GetTransaction(ctx, id)
 		return toolResult(body, err, logger, "get_transaction")
 	})
@@ -83,6 +86,7 @@ func registerGetLatestTransactions(s *server.MCPServer, client *TransactionClien
 		mcp.WithDescription("Get the most recent transactions"),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		logger.Info("tool call", "tool", "get_latest_transactions")
 		body, err := client.GetLatestTransactions(ctx)
 		return toolResult(body, err, logger, "get_latest_transactions")
 	})
@@ -102,6 +106,7 @@ func registerGetBiggestTransactions(s *server.MCPServer, client *TransactionClie
 		if v := req.GetInt("year", 0); v > 0 {
 			q.Set("year", fmt.Sprintf("%d", v))
 		}
+		logger.Info("tool call", "tool", "get_biggest_transactions", "params", q.Encode())
 		body, err := client.GetBiggestTransactions(ctx, q)
 		return toolResult(body, err, logger, "get_biggest_transactions")
 	})
@@ -112,6 +117,7 @@ func registerGetAverageByType(s *server.MCPServer, client *TransactionClient, lo
 		mcp.WithDescription("Get average transaction amount grouped by type (income/expense)"),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		logger.Info("tool call", "tool", "get_average_by_type")
 		body, err := client.GetAverageByType(ctx)
 		return toolResult(body, err, logger, "get_average_by_type")
 	})
@@ -130,6 +136,7 @@ func registerGetAverageByCategory(s *server.MCPServer, client *TransactionClient
 				q.Set(key, v)
 			}
 		}
+		logger.Info("tool call", "tool", "get_average_by_category", "params", q.Encode())
 		body, err := client.GetAverageByCategory(ctx, q)
 		return toolResult(body, err, logger, "get_average_by_category")
 	})
@@ -140,6 +147,7 @@ func registerListCategories(s *server.MCPServer, client *TransactionClient, logg
 		mcp.WithDescription("List all transaction categories"),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		logger.Info("tool call", "tool", "list_categories")
 		body, err := client.ListCategories(ctx)
 		return toolResult(body, err, logger, "list_categories")
 	})
@@ -150,6 +158,7 @@ func registerListSubcategories(s *server.MCPServer, client *TransactionClient, l
 		mcp.WithDescription("List all transaction subcategories"),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		logger.Info("tool call", "tool", "list_subcategories")
 		body, err := client.ListSubcategories(ctx)
 		return toolResult(body, err, logger, "list_subcategories")
 	})
@@ -160,6 +169,7 @@ func registerHealthCheck(s *server.MCPServer, client *TransactionClient, logger 
 		mcp.WithDescription("Check the health of the transactions service"),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		logger.Info("tool call", "tool", "health_check")
 		body, err := client.HealthCheck(ctx)
 		return toolResult(body, err, logger, "health_check")
 	})
