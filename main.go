@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -22,10 +21,10 @@ func startHealthServer(port string, client *TransactionClient, logger *slog.Logg
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		type response struct {
-			Status      string `json:"status"`
-			Service     string `json:"service"`
-			Backend     string `json:"backend"`
-			BackendURL  string `json:"backend_url"`
+			Status     string `json:"status"`
+			Service    string `json:"service"`
+			Backend    string `json:"backend"`
+			BackendURL string `json:"backend_url"`
 		}
 
 		backendStatus := "ok"
@@ -106,7 +105,4 @@ func main() {
 		logger.Error("unknown TRANSPORT", "transport", transport)
 		os.Exit(1)
 	}
-
-	// suppress unused import warning when health check ctx is used
-	_ = context.Background
 }
