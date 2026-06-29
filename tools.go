@@ -218,7 +218,7 @@ func registerCreateTransaction(s *server.MCPServer, client *TransactionClient, l
 		mcp.WithNumber("subcategory_id", mcp.Description("Subcategory ID (see list_subcategories)")),
 		mcp.WithNumber("created_by_id", mcp.Description("Owner user ID (defaults to 1)")),
 		mcp.WithString("description", mcp.Description("Free-text description")),
-		mcp.WithString("subtype", mcp.Description("Optional subtype: salary, profits, or pro-labore")),
+		mcp.WithString("subtype", mcp.Description("[DEPRECATED — do not use. This field is ignored by the backend.]")),
 		mcp.WithBoolean("is_recurring", mcp.Description("Whether this is a recurring transaction")),
 		mcp.WithString("frequency", mcp.Description("Recurrence frequency, e.g. monthly")),
 		mcp.WithString("date", mcp.Description("Transaction date in RFC3339 (e.g. 2024-01-15T10:30:00Z)")),
@@ -242,11 +242,12 @@ func registerCreateTransaction(s *server.MCPServer, client *TransactionClient, l
 			return mcp.NewToolResultError("type must be either 'income' or 'expense'"), nil
 		}
 
-		payload := pickArgs(req, "category_id", "subcategory_id", "description", "subtype",
+		payload := pickArgs(req, "category_id", "subcategory_id", "description",
 			"is_recurring", "frequency", "date", "start_date", "end_date", "location")
 		payload["amount"] = amount
 		payload["type"] = txType
 		payload["created_by_id"] = req.GetInt("created_by_id", defaultCreatedByID)
+		payload["origin"] = "mcp"
 
 		logger.Info("tool call", "tool", "create_transaction", "amount", amount, "type", txType)
 		body, err := client.CreateTransaction(ctx, payload)
@@ -265,7 +266,7 @@ func registerUpdateTransaction(s *server.MCPServer, client *TransactionClient, l
 		mcp.WithNumber("category_id", mcp.Description("Category ID (see list_categories)")),
 		mcp.WithNumber("subcategory_id", mcp.Description("Subcategory ID (see list_subcategories)")),
 		mcp.WithString("description", mcp.Description("Free-text description")),
-		mcp.WithString("subtype", mcp.Description("Optional subtype: salary, profits, or pro-labore")),
+		mcp.WithString("subtype", mcp.Description("[DEPRECATED — do not use. This field is ignored by the backend.]")),
 		mcp.WithBoolean("is_recurring", mcp.Description("Whether this is a recurring transaction")),
 		mcp.WithString("frequency", mcp.Description("Recurrence frequency, e.g. monthly")),
 		mcp.WithString("date", mcp.Description("Transaction date in RFC3339 (e.g. 2024-01-15T10:30:00Z)")),
@@ -286,7 +287,7 @@ func registerUpdateTransaction(s *server.MCPServer, client *TransactionClient, l
 		}
 
 		payload := pickArgs(req, "amount", "type", "category_id", "subcategory_id", "description",
-			"subtype", "is_recurring", "frequency", "date", "start_date", "end_date", "location")
+			"is_recurring", "frequency", "date", "start_date", "end_date", "location")
 
 		logger.Info("tool call", "tool", "update_transaction", "id", id)
 		body, err := client.UpdateTransaction(ctx, id, payload)
