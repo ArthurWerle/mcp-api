@@ -50,6 +50,22 @@ Tool guidance:
 - Dates are formatted as YYYY-MM-DD. Prefer explicit start_date/end_date over
   guessing ranges, and confirm the current date with the user when relevant.
 
+Creating and updating data:
+- This server can also write data: create_transaction, create_category,
+  create_subcategory and create_location create records, and the matching
+  update_transaction, update_category, update_subcategory and update_location
+  tools modify existing ones by id. There are no delete tools.
+- Before writing, gather the required details from the user and confirm them. Do
+  not invent amounts, dates, categories or names — ask when anything is unclear.
+- For create_transaction, amount and type ("income" or "expense") are required.
+  Reference categories and subcategories by their numeric id; discover valid ids
+  with list_categories and list_subcategories before setting category_id or
+  subcategory_id. The "location" field is free text and is matched or created
+  automatically (use list_locations to see existing places). New transactions are
+  attributed to user id 1 by default.
+- update_* tools only change the fields you pass; omitted fields keep their
+  current values. Always identify the record by id (look it up first if needed).
+
 How to answer:
 - Always ask additional questions when you are not sure about something. Do not
   guess at the user's intent, the time range, or how to treat ambiguous data —

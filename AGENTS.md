@@ -7,9 +7,10 @@ Guidance for AI coding agents and contributors working in this repository.
 `mcp-api` (Go module `github.com/arthurwerle/mcp-api`) is an
 [MCP](https://modelcontextprotocol.io/) server built on
 [`github.com/mark3labs/mcp-go`](https://github.com/mark3labs/mcp-go). It exposes
-read-only tools over a personal-finance **transactions** dataset by proxying
-requests to a backend "transaction service" REST API. The server itself holds no
-data — it is a translation layer between MCP clients and that backend.
+tools over a personal-finance **transactions** dataset by proxying requests to a
+backend "transaction service" REST API. Most tools read data; a set of
+`create_*` / `update_*` tools also write to the backend. The server itself holds
+no data — it is a translation layer between MCP clients and that backend.
 
 ## Architecture
 
@@ -36,8 +37,10 @@ The whole server is a few files in `package main`:
     success/error result and logs the outcome.
 - **`client.go`** — `TransactionClient`, a thin HTTP client for the backend.
   - `get` / `getURL` perform GET requests, log timing, and surface non-2xx
-    responses as errors. All tool methods are simple GETs against backend paths
-    (`/transactions`, `/categories`, etc.).
+    responses as errors. `send` (and its `post` / `put` wrappers) does the same
+    for requests with a JSON body. Read tools map to GETs; `create_*` / `update_*`
+    tools map to POST / PUT against backend paths (`/transactions`, `/categories`,
+    `/subcategories`, `/locations`, etc.).
   - `HealthCheck` hits `/health` at the backend root (strips the `/api/v2`
     suffix), not under the API base path.
 
@@ -91,8 +94,12 @@ service status and backend reachability.
   `go.mod`/`go.sum` tidy.
 - **Logging:** structured logging via `log/slog` as JSON to stderr. Use the
   passed-in `*slog.Logger`; log tool calls and upstream requests/responses.
-- **Tools are read-only:** every tool maps to a backend GET. Do not introduce
-  write/side-effecting tools without explicit intent.
+- **Read vs. write tools:** read tools map to a backend GET. Write tools
+  (`create_*` / `update_*`) map to POST / PUT and must be tagged with
+  `mcp.WithReadOnlyHintAnnotation(false)` so clients know they have side effects.
+  There are intentionally no delete tools. Build write payloads as a
+  `map[string]any` containing only the fields the caller provided (see `pickArgs`
+  in `tools.go`) so partial updates leave other fields untouched.
 - **Error handling:** return tool errors via `mcp.NewToolResultError(...)`
   (handled by `toolResult`) rather than returning a Go `error` from the handler,
   so the model sees a usable message.
@@ -100,7 +107,7 @@ service status and backend reachability.
 ## Adding a new tool
 
 1. Add a method to `TransactionClient` in `client.go` that performs the backend
-   request (reuse `get` / `getURL`).
+   request (reuse `get` / `getURL` for reads, `post` / `put` for writes).
 2. Add a `registerYourTool(s, client, logger)` function in `tools.go`: define the
    `mcp.NewTool` with name/description/params, parse params in the handler, call
    your client method, and return `toolResult(body, err, logger, "your_tool")`.

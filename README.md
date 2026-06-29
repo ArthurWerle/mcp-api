@@ -1,11 +1,14 @@
 # mcp-api
 
-An [MCP](https://modelcontextprotocol.io/) server that gives an LLM read-only
-access to a personal-finance **transactions** dataset. It acts as a thin bridge
-between an MCP client (Claude Desktop, a custom agent, etc.) and a backend
-transaction REST service, exposing a handful of finance-focused tools.
+An [MCP](https://modelcontextprotocol.io/) server that gives an LLM access to a
+personal-finance **transactions** dataset. It acts as a thin bridge between an
+MCP client (Claude Desktop, a custom agent, etc.) and a backend transaction REST
+service, exposing a handful of finance-focused tools. Most tools read data; a set
+of `create_*` / `update_*` tools can also write to the backend.
 
 ## Tools
+
+### Read
 
 | Tool | Description |
 | --- | --- |
@@ -17,7 +20,23 @@ transaction REST service, exposing a handful of finance-focused tools.
 | `get_average_by_category` | Average amount grouped by category |
 | `list_categories` | List all categories |
 | `list_subcategories` | List all subcategories |
+| `list_locations` | List all locations (places/merchants) |
 | `health_check` | Check the backend transactions service |
+
+### Write
+
+| Tool | Description |
+| --- | --- |
+| `create_transaction` | Create a transaction (`amount` and `type` required; optional category/subcategory by id, free-text `location`, dates, recurrence). Attributed to user id 1 by default |
+| `update_transaction` | Update a transaction by ID (only the fields you pass are changed) |
+| `create_category` | Create a category (`name` required; optional `description`, `color`) |
+| `update_category` | Update a category by ID |
+| `create_subcategory` | Create a subcategory (`name` required; optional `description`, `color`) |
+| `update_subcategory` | Update a subcategory by ID |
+| `create_location` | Create a location by `name` (deduplicated — returns the existing one if it already exists) |
+| `update_location` | Update a location's name by ID |
+
+There are no delete tools.
 
 ## Prerequisites
 
