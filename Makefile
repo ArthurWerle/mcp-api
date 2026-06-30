@@ -49,18 +49,18 @@ compose-up:
 
 staging-up:
 	@echo "Starting staging services..."
-	@docker compose -f docker-compose.staging.yml --env-file stack.env up -d
+	@docker compose -f docker-compose.staging.yml --env-file stack.staging.env up -d
 
 staging-down:
 	@echo "Stopping staging services..."
-	@docker compose -f docker-compose.staging.yml --env-file stack.env down
+	@docker compose -f docker-compose.staging.yml --env-file stack.staging.env down
 
 staging-logs:
-	@docker compose -f docker-compose.staging.yml --env-file stack.env logs -f
+	@docker compose -f docker-compose.staging.yml --env-file stack.staging.env logs -f
 
 staging-compose-up:
 	@echo "Running staging docker compose up --build..."
-	docker compose -f docker-compose.staging.yml --env-file stack.env up --build
+	docker compose -f docker-compose.staging.yml --env-file stack.staging.env up --build
 
 deps:
 	@echo "Installing dependencies..."
