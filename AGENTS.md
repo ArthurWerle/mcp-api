@@ -126,10 +126,11 @@ service status and backend reachability.
 - **Staging:** `docker-compose.staging.yml` runs a second instance side by side
   with prod, reading its own `stack.env` (gitignored, supplied per environment)
   with distinct values (`SERVICE_CONTAINER_NAME=mcp-api-staging`, host port
-  `6667`) and joining `staging_transactions_transactions-network` to reach the
-  staging backend. The two stacks must differ in `SERVICE_CONTAINER_NAME` and
-  `SERVICE_PORT`, otherwise Docker rejects the deploy with a `container name
-  already in use` conflict. See the "Staging deploy" section in `README.md`.
+  `6667`) and joining the same external `financer-transactions_transactions-network`
+  as prod to reach the backend. The two stacks must differ in
+  `SERVICE_CONTAINER_NAME` and `SERVICE_PORT`, otherwise Docker rejects the deploy
+  with a `container name already in use` conflict. See the "Staging deploy"
+  section in `README.md`.
 
 ## Gotchas
 

@@ -147,8 +147,8 @@ distinct container names and host ports, so both run at the same time:
 Both stacks read a `stack.env` (gitignored — supplied per environment). Each
 deployment provides its own values, so the **staging** `stack.env` sets
 `SERVICE_CONTAINER_NAME=mcp-api-staging`, `SERVICE_PORT=6667` and a
-`TRANSACTION_SERVICE_URL` pointing at the staging transactions backend. The
-staging compose joins the `staging_transactions_transactions-network` to reach it.
+`TRANSACTION_SERVICE_URL` pointing at the transactions backend. Both stacks join
+the same external `financer-transactions_transactions-network` to reach it.
 
 Local commands:
 
