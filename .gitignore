@@ -2,3 +2,4 @@ bin/
 mcp-api
 *.out
 *.html
+*.env
