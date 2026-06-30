@@ -54,9 +54,8 @@ The whole server is a few files in `package main`:
 | `Makefile` | Build / run / test / lint / Docker targets |
 | `Dockerfile` | Multi-stage build → `alpine` image |
 | `docker-compose.yml` | Local Docker run (HTTP mode, port `6666:3006`) |
-| `docker-compose.staging.yml` | Staging compose (parametrized; variables from `stack.staging.env`) |
-| `stack.env` | Default env for the prod Docker/compose stack |
-| `stack.staging.env` | Env for the staging stack (distinct container name + host port) |
+| `docker-compose.staging.yml` | Staging compose (parametrized; reads `stack.env`, supplied per environment) |
+| `stack.env` | Env for the Docker/compose stack — **gitignored**, provided per environment (prod vs. staging) |
 | `.github/workflows/build.yml` | CI: cross-compile binaries as artifacts |
 
 ## Common commands
@@ -124,13 +123,13 @@ service status and backend reachability.
 - **Deployment:** runs in HTTP mode via Docker Compose. `docker-compose.yml`
   (prod) joins the external `financer-transactions_transactions-network` so the
   server can reach the backend service by container name.
-- **Staging:** `docker-compose.staging.yml` + `stack.staging.env` run a second
-  instance side by side with prod. It uses distinct values
-  (`SERVICE_CONTAINER_NAME=mcp-api-staging`, host port `6667`) and joins
-  `staging_transactions_transactions-network` to reach the staging backend. The
-  two stacks must differ in `SERVICE_CONTAINER_NAME` and `SERVICE_PORT`, otherwise
-  Docker rejects the deploy with a `container name already in use` conflict. See
-  the "Staging deploy" section in `README.md`.
+- **Staging:** `docker-compose.staging.yml` runs a second instance side by side
+  with prod, reading its own `stack.env` (gitignored, supplied per environment)
+  with distinct values (`SERVICE_CONTAINER_NAME=mcp-api-staging`, host port
+  `6667`) and joining `staging_transactions_transactions-network` to reach the
+  staging backend. The two stacks must differ in `SERVICE_CONTAINER_NAME` and
+  `SERVICE_PORT`, otherwise Docker rejects the deploy with a `container name
+  already in use` conflict. See the "Staging deploy" section in `README.md`.
 
 ## Gotchas
 

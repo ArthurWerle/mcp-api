@@ -5,7 +5,7 @@ services:
     build: .
     container_name: ${SERVICE_CONTAINER_NAME}
     env_file:
-      - stack.staging.env
+      - stack.env
     ports:
       - "${SERVICE_PORT}:${SERVER_PORT}"
     restart: unless-stopped

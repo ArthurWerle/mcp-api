@@ -139,14 +139,16 @@ To validate changes before promoting them, `mcp-api` can run a **staging**
 instance alongside production. They are two independent compose stacks with
 distinct container names and host ports, so both run at the same time:
 
-| Stack | Compose file | Env file | Container | Host port |
-| --- | --- | --- | --- | --- |
-| prod | `docker-compose.yml` | `stack.env` | `mcp-api` | `6666` |
-| staging | `docker-compose.staging.yml` | `stack.staging.env` | `mcp-api-staging` | `6667` |
+| Stack | Compose file | Container | Host port |
+| --- | --- | --- | --- |
+| prod | `docker-compose.yml` | `mcp-api` | `6666` |
+| staging | `docker-compose.staging.yml` | `mcp-api-staging` | `6667` |
 
-The staging compose joins the `staging_transactions_transactions-network` so the
-staging server talks to the **staging** transactions backend (see
-`TRANSACTION_SERVICE_URL` in `stack.staging.env`).
+Both stacks read a `stack.env` (gitignored — supplied per environment). Each
+deployment provides its own values, so the **staging** `stack.env` sets
+`SERVICE_CONTAINER_NAME=mcp-api-staging`, `SERVICE_PORT=6667` and a
+`TRANSACTION_SERVICE_URL` pointing at the staging transactions backend. The
+staging compose joins the `staging_transactions_transactions-network` to reach it.
 
 Local commands:
 
@@ -158,13 +160,12 @@ make staging-down    # stop only staging (prod keeps running)
 
 ### Portainer
 
-Create a **second stack** pointing at `docker-compose.staging.yml` and make sure
-its environment variables come from `stack.staging.env` (or copy those values
-into the stack's *Environment variables* panel). The key requirement is that
-`SERVICE_CONTAINER_NAME` differs from prod (`mcp-api-staging`) and `SERVICE_PORT`
-is a free host port (`6667`) — that is what avoids the
-`container name "/mcp-api" is already in use` conflict when deploying the second
-stack.
+Create a **second stack** pointing at `docker-compose.staging.yml` and provide
+its `stack.env` with the staging values (via the stack's *Environment variables*
+panel or a mounted env file). The key requirement is that `SERVICE_CONTAINER_NAME`
+differs from prod (`mcp-api-staging`) and `SERVICE_PORT` is a free host port
+(`6667`) — that is what avoids the `container name "/mcp-api" is already in use`
+conflict when deploying the second stack.
 
 ## Configuration
 
