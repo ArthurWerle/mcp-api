@@ -11,10 +11,15 @@ services:
     restart: unless-stopped
     networks:
       - mcp-network
+      # ai-internal-staging reaches mcp-api via this network
       - financer-transactions_transactions-network
+      # transaction-service-v2-staging is on this network (same as staging BFF)
+      - staging_bff_back-end
 
 networks:
   mcp-network:
     driver: bridge
   financer-transactions_transactions-network:
+    external: true
+  staging_bff_back-end:
     external: true
