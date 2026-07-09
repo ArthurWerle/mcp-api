@@ -153,7 +153,11 @@ func main() {
 		}
 	case "http":
 		addr := fmt.Sprintf(":%s", port)
-		sseServer := server.NewSSEServer(s, server.WithBaseURL(fmt.Sprintf("http://0.0.0.0:%s", port)))
+		sseServer := server.NewSSEServer(s,
+			// Relative /message URLs so remote clients (e.g. ai-internal in another
+			// container) resolve the endpoint against their own MCP host, not 0.0.0.0.
+			server.WithUseFullURLForMessageEndpoint(false),
+		)
 
 		mux := http.NewServeMux()
 		mux.HandleFunc("/health", healthHandler(client, logger))

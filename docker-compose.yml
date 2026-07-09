@@ -5,7 +5,7 @@ services:
     env_file:
       - stack.env
     ports:
-      - "6666:3006"
+      - "${SERVICE_PORT}:${SERVER_PORT}"
     restart: unless-stopped
     networks:
       - mcp-network
