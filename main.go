@@ -153,17 +153,23 @@ func main() {
 		}
 	case "http":
 		addr := fmt.Sprintf(":%s", port)
+		streamableServer := server.NewStreamableHTTPServer(s)
 		sseServer := server.NewSSEServer(s,
-			// Relative /message URLs so remote clients (e.g. ai-internal in another
-			// container) resolve the endpoint against their own MCP host, not 0.0.0.0.
+			// Relative /message URLs so remote clients resolve the endpoint
+			// against their own MCP host, not 0.0.0.0.
 			server.WithUseFullURLForMessageEndpoint(false),
 		)
 
 		mux := http.NewServeMux()
 		mux.HandleFunc("/health", healthHandler(client, logger))
+		mux.Handle("/mcp", streamableServer)
 		mux.Handle("/", sseServer)
 
-		logger.Info("starting MCP server in HTTP/SSE mode", "addr", addr)
+		logger.Info("starting MCP server in HTTP mode",
+			"addr", addr,
+			"streamable_http", "/mcp",
+			"sse", "/sse",
+		)
 		if err := http.ListenAndServe(addr, mux); err != nil {
 			logger.Error("server error", "err", err)
 			os.Exit(1)
