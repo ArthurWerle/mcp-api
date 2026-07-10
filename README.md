@@ -86,6 +86,50 @@ artifacts (`mcp-transactions-darwin-arm64`, `mcp-transactions-linux-amd64`).
 4. **Restart Claude Desktop.** The transaction tools will appear in the tools
    menu, and you can ask things like *"What were my biggest expenses last month?"*
 
+### Windows (including building from WSL)
+
+There is no prebuilt Windows binary from CI, and CI only cross-compiles for
+macOS/Linux (see the `Build Binaries` workflow), so you need to build one
+yourself. If you're building from inside **WSL**, cross-compile a native
+Windows binary — a plain `go build` inside WSL produces a Linux ELF, which
+Claude Desktop (a native Windows app) cannot execute:
+
+```bash
+cd ~/path/to/mcp-api
+GOOS=windows GOARCH=amd64 go build -o bin/mcp-api.exe .
+```
+
+Claude Desktop resolves `command` on the **Windows** side, so avoid pointing
+it at a `\\wsl.localhost\...` UNC path — it's an easy source of JSON
+escaping bugs (a UNC path needs *four* backslashes when escaped in JSON,
+e.g. `\\\\wsl.localhost\\...`) and is less reliable than a local file. Instead,
+copy the binary onto native Windows storage:
+
+```bash
+mkdir -p /mnt/c/Users/<your-windows-username>/mcp-api
+cp bin/mcp-api.exe /mnt/c/Users/<your-windows-username>/mcp-api/
+```
+
+Then edit `%APPDATA%\Claude\claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "mcp-api": {
+      "command": "C:\\Users\\<your-windows-username>\\mcp-api\\mcp-api.exe",
+      "env": {
+        "TRANSPORT": "stdio",
+        "TRANSACTION_SERVICE_URL": "http://localhost:1235/api/v2"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop (fully quit from the system tray, not just close the
+window). If you update the binary later, re-run the build and re-copy it to
+the same Windows path.
+
 ## Use with custom agents (LangChain / HTTP + SSE)
 
 For programmatic use from a framework like LangChain, run the server in **HTTP
