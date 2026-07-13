@@ -65,7 +65,7 @@ func registerListTransactions(s *server.MCPServer, client *TransactionClient, lo
 	tool := mcp.NewTool("list_transactions",
 		mcp.WithDescription("List transactions with optional filters"),
 		mcp.WithBoolean("current_month", mcp.Description("Filter to current month only")),
-		mcp.WithString("category", mcp.Description("Filter by category name")),
+		mcp.WithNumber("category_id", mcp.Description("Filter by category ID. Use list_categories to discover valid category IDs and their names")),
 		mcp.WithString("query", mcp.Description("Search query")),
 		mcp.WithString("type", mcp.Description("Transaction type: income or expense")),
 		mcp.WithString("start_date", mcp.Description("Start date (YYYY-MM-DD)")),
@@ -78,10 +78,13 @@ func registerListTransactions(s *server.MCPServer, client *TransactionClient, lo
 		if req.GetBool("current_month", false) {
 			q.Set("current_month", "true")
 		}
-		for _, key := range []string{"category", "query", "type", "start_date", "end_date"} {
+		for _, key := range []string{"query", "type", "start_date", "end_date"} {
 			if v := req.GetString(key, ""); v != "" {
 				q.Set(key, v)
 			}
+		}
+		if v := req.GetInt("category_id", 0); v > 0 {
+			q.Set("category_id", fmt.Sprintf("%d", v))
 		}
 		if v := req.GetInt("limit", 0); v > 0 {
 			q.Set("limit", fmt.Sprintf("%d", v))
@@ -174,7 +177,7 @@ func registerGetAverageByCategory(s *server.MCPServer, client *TransactionClient
 
 func registerListCategories(s *server.MCPServer, client *TransactionClient, logger *slog.Logger) {
 	tool := mcp.NewTool("list_categories",
-		mcp.WithDescription("List all transaction categories"),
+		mcp.WithDescription("List all transaction categories. Use this to discover category IDs and names before filtering transactions by category"),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logger.Info("tool call", "tool", "list_categories")
