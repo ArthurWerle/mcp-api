@@ -1,7 +1,12 @@
 name: mcp-api-staging
 
 services:
-  mcp-api:
+  # Service key is staging-specific on purpose: Docker registers the service
+  # key as a DNS alias on every attached network, and a bare "mcp-api" alias
+  # would collide with the prod container if this stack ever joins a network
+  # the prod stack is on — Docker DNS then round-robins between prod and
+  # staging, silently splitting traffic across environments.
+  mcp-api-staging:
     build: .
     container_name: ${SERVICE_CONTAINER_NAME}
     env_file:
@@ -11,15 +16,12 @@ services:
     restart: unless-stopped
     networks:
       - mcp-network
-      # ai-internal-staging reaches mcp-api via this network
-      - financer-transactions_transactions-network
-      # transaction-service-v2-staging is on this network (same as staging BFF)
+      # ai-internal-staging and transaction-service-v2-staging are both on
+      # this network. Staging must NOT join prod networks (see alias note above).
       - staging_bff_back-end
 
 networks:
   mcp-network:
     driver: bridge
-  financer-transactions_transactions-network:
-    external: true
   staging_bff_back-end:
     external: true
