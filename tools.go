@@ -212,13 +212,15 @@ func registerCreateTransaction(s *server.MCPServer, client *TransactionClient, l
 	tool := mcp.NewTool("create_transaction",
 		mcp.WithDescription("Create a new transaction. amount and type are required. "+
 			"Reference categories/subcategories by id (discover them with list_categories / "+
-			"list_subcategories); 'location' is free text and is matched/created automatically."),
+			"list_subcategories). Always provide category_id AND subcategory_id when a matching "+
+			"entry exists — only omit them when nothing matches. 'location' is free text and is "+
+			"matched/created automatically."),
 		mcp.WithReadOnlyHintAnnotation(false),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithNumber("amount", mcp.Required(), mcp.Description("Transaction amount (must be greater than 0)")),
 		mcp.WithString("type", mcp.Required(), mcp.Description("Transaction type: income or expense")),
 		mcp.WithNumber("category_id", mcp.Description("Category ID (see list_categories)")),
-		mcp.WithNumber("subcategory_id", mcp.Description("Subcategory ID (see list_subcategories)")),
+		mcp.WithNumber("subcategory_id", mcp.Description("Subcategory ID (see list_subcategories). Should always be set to the best-matching subcategory; omit only when none matches")),
 		mcp.WithNumber("created_by_id", mcp.Description("Owner user ID (defaults to 1)")),
 		mcp.WithString("description", mcp.Description("Free-text description")),
 		mcp.WithString("subtype", mcp.Description("[DEPRECATED — do not use. This field is ignored by the backend.]")),
@@ -267,7 +269,7 @@ func registerUpdateTransaction(s *server.MCPServer, client *TransactionClient, l
 		mcp.WithNumber("amount", mcp.Description("Transaction amount (must be greater than 0)")),
 		mcp.WithString("type", mcp.Description("Transaction type: income or expense")),
 		mcp.WithNumber("category_id", mcp.Description("Category ID (see list_categories)")),
-		mcp.WithNumber("subcategory_id", mcp.Description("Subcategory ID (see list_subcategories)")),
+		mcp.WithNumber("subcategory_id", mcp.Description("Subcategory ID (see list_subcategories). Should always be set to the best-matching subcategory; omit only when none matches")),
 		mcp.WithString("description", mcp.Description("Free-text description")),
 		mcp.WithString("subtype", mcp.Description("[DEPRECATED — do not use. This field is ignored by the backend.]")),
 		mcp.WithBoolean("is_recurring", mcp.Description("Whether this is a recurring transaction")),
