@@ -76,7 +76,11 @@ func registerListTransactions(s *server.MCPServer, client *TransactionClient, lo
 	s.AddTool(tool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		q := url.Values{}
 		if req.GetBool("current_month", false) {
+			// The backend reads this filter as camelCase (the frontend/BFF send
+			// currentMonth); send both spellings so it is never silently
+			// ignored and the full history returned as "this month".
 			q.Set("current_month", "true")
+			q.Set("currentMonth", "true")
 		}
 		for _, key := range []string{"query", "type", "start_date", "end_date"} {
 			if v := req.GetString(key, ""); v != "" {
